@@ -12,3 +12,8 @@ mod traits;
 /// primefield with state width 8 and rate 4.
 #[cfg(feature = "f64")]
 pub mod anemoi_64_8_4;
+
+/// The Anemoi hash function over Cheetah's small
+/// primefield with state width 12 and rate 8.
+#[cfg(feature = "f64")]
+pub mod anemoi_64_12_8;

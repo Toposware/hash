@@ -30,6 +30,11 @@ harness = false
 required-features = ["f64"]
 
 [[bench]]
+name = "anemoi-64-12-8"
+harness = false
+required-features = ["f64"]
+
+[[bench]]
 name = "rescue-64-8-4"
 harness = false
 required-features = ["f64"]

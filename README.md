@@ -6,11 +6,16 @@ This crate provides an implementation of algebraic cryptographic hash functions.
 
 **WARNING:** This is an ongoing, prototype implementation subject to changes. In particular, it has not been audited and may contain bugs and security flaws. This implementation is NOT ready for production use.
 
-It currently contains:
+It currently contains several hash instantiations over the 64-bit Goldilocks field GF(p) with p = 2<sup>64</sup> - 2<sup>32</sup> + 1:
 
-* an instantiation of Rescue-Prime over a 64-bit prime field with state width 8 and capacity 4
-* an instantiation of Rescue-Prime over a 64-bit prime field with state width 12 and capacity 4
-* an instantiation of Rescue-Prime over a 64-bit prime field with state width 14 and capacity 7
+* [Rescue-Prime](https://eprint.iacr.org/2020/1143) with state width 8 and capacity 4
+* [Rescue-Prime](https://eprint.iacr.org/2020/1143) with state width 12 and capacity 4
+* [Rescue-Prime](https://eprint.iacr.org/2020/1143) with state width 14 and capacity 7
+
+as well as:
+
+* [Anemoi](https://eprint.iacr.org/2022/840) with state width 8 and capacity 4
+* [Anemoi](https://eprint.iacr.org/2022/840) with state width 12 and capacity 4
 
 ## License
 

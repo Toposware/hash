@@ -82,12 +82,12 @@ pub(crate) fn apply_mds(state: &mut [Fp; STATE_WIDTH]) {
     let mut result = [Fp::zero(); STATE_WIDTH];
     for (i, r) in result.iter_mut().enumerate().take(NUM_COLUMNS) {
         for (j, s) in x.into_iter().enumerate().take(NUM_COLUMNS) {
-            *r += mds::MDS[i * NUM_COLUMNS + j] * s;
+            *r += s.mul_by_u32(mds::MDS[i * NUM_COLUMNS + j]);
         }
     }
     for (i, r) in result.iter_mut().enumerate().skip(NUM_COLUMNS) {
         for (j, s) in y.into_iter().enumerate() {
-            *r += mds::MDS[(i - NUM_COLUMNS) * NUM_COLUMNS + j] * s;
+            *r += s.mul_by_u32(mds::MDS[(i - NUM_COLUMNS) * NUM_COLUMNS + j]);
         }
     }
 

@@ -7,24 +7,10 @@
 // except according to those terms.
 
 use super::NUM_COLUMNS;
-use cheetah::Fp;
 
 /// Maximum Diffusion Layer matrix for Anemoi,
-pub(crate) const MDS: [Fp; NUM_COLUMNS * NUM_COLUMNS] = [
-    Fp::one(),
-    Fp::new(49),
-    Fp::new(49),
-    Fp::new(8),
-    Fp::new(8),
-    Fp::new(56),
-    Fp::new(49),
-    Fp::new(15),
-    Fp::new(7),
-    Fp::new(8),
-    Fp::one(),
-    Fp::new(7),
-    Fp::new(7),
-    Fp::new(15),
-    Fp::new(8),
-    Fp::new(8),
-];
+// Because of the small sizes of the coefficients of the matrix,
+// those are stored as u32 to enjoy faster multiplication with
+// `Fp` elements.
+pub(crate) const MDS: [u32; NUM_COLUMNS * NUM_COLUMNS] =
+    [1, 49, 49, 8, 8, 56, 49, 15, 7, 8, 1, 7, 7, 15, 8, 8];

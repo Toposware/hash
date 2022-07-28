@@ -8,6 +8,7 @@
 
 use super::traits::AnemoiHasher;
 use crate::f64_utils::apply_rescue_inv_sbox;
+use cheetah::fp_arith_utils::reduce_u96;
 use cheetah::Fp;
 
 /// Digest for Anemoi
@@ -75,23 +76,29 @@ pub(crate) fn apply_sbox(state: &mut [Fp; STATE_WIDTH]) {
 /// Applies matrix-vector multiplication of the current
 /// hash state with the Anemoi MDS matrix.
 pub(crate) fn apply_mds(state: &mut [Fp; STATE_WIDTH]) {
-    let x: [Fp; NUM_COLUMNS] = state[..NUM_COLUMNS].try_into().unwrap();
-    let mut y: [Fp; NUM_COLUMNS] = state[NUM_COLUMNS..].try_into().unwrap();
-    y[NUM_COLUMNS - 1] = y[0];
+    let x: [u128; NUM_COLUMNS] = [
+        state[0].output_unreduced_internal() as u128,
+        state[1].output_unreduced_internal() as u128,
+        state[2].output_unreduced_internal() as u128,
+        state[3].output_unreduced_internal() as u128,
+    ];
+    let y: [u128; NUM_COLUMNS] = [
+        state[4].output_unreduced_internal() as u128,
+        state[5].output_unreduced_internal() as u128,
+        state[6].output_unreduced_internal() as u128,
+        state[4].output_unreduced_internal() as u128,
+    ];
 
-    let mut result = [Fp::zero(); STATE_WIDTH];
-    for (i, r) in result.iter_mut().enumerate().take(NUM_COLUMNS) {
-        for (j, s) in x.into_iter().enumerate().take(NUM_COLUMNS) {
-            *r += s.mul_by_u32(mds::MDS[i * NUM_COLUMNS + j]);
-        }
-    }
-    for (i, r) in result.iter_mut().enumerate().skip(NUM_COLUMNS) {
-        for (j, s) in y.into_iter().enumerate() {
-            *r += s.mul_by_u32(mds::MDS[(i - NUM_COLUMNS) * NUM_COLUMNS + j]);
-        }
-    }
+    // Fully unroll the matrix-vector product
+    state[0] = Fp::from_raw_unchecked(reduce_u96(x[0] + 49 * x[1] + 49 * x[2] + 8 * x[3]));
+    state[1] = Fp::from_raw_unchecked(reduce_u96(8 * x[0] + 56 * x[1] + 49 * x[2] + 15 * x[3]));
+    state[2] = Fp::from_raw_unchecked(reduce_u96(7 * x[0] + 8 * x[1] + x[2] + 7 * x[3]));
+    state[3] = Fp::from_raw_unchecked(reduce_u96(7 * x[0] + 15 * x[1] + 8 * x[2] + 8 * x[3]));
 
-    state.copy_from_slice(&result);
+    state[4] = Fp::from_raw_unchecked(reduce_u96(y[0] + 49 * y[1] + 49 * y[2] + 8 * y[3]));
+    state[5] = Fp::from_raw_unchecked(reduce_u96(8 * y[0] + 56 * y[1] + 49 * y[2] + 15 * y[3]));
+    state[6] = Fp::from_raw_unchecked(reduce_u96(7 * y[0] + 8 * y[1] + y[2] + 7 * y[3]));
+    state[7] = Fp::from_raw_unchecked(reduce_u96(7 * y[0] + 15 * y[1] + 8 * y[2] + 8 * y[3]));
 }
 
 // ANEMOI PERMUTATION
@@ -126,6 +133,26 @@ pub(crate) fn apply_round(state: &mut [Fp; STATE_WIDTH], step: usize) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn apply_naive_mds(state: &mut [Fp; STATE_WIDTH]) {
+        let x: [Fp; NUM_COLUMNS] = state[..NUM_COLUMNS].try_into().unwrap();
+        let mut y: [Fp; NUM_COLUMNS] = state[NUM_COLUMNS..].try_into().unwrap();
+        y[NUM_COLUMNS - 1] = y[0];
+
+        let mut result = [Fp::zero(); STATE_WIDTH];
+        for (i, r) in result.iter_mut().enumerate().take(NUM_COLUMNS) {
+            for (j, s) in x.into_iter().enumerate().take(NUM_COLUMNS) {
+                *r += s.mul_by_u32(mds::MDS[i * NUM_COLUMNS + j]);
+            }
+        }
+        for (i, r) in result.iter_mut().enumerate().skip(NUM_COLUMNS) {
+            for (j, s) in y.into_iter().enumerate() {
+                *r += s.mul_by_u32(mds::MDS[(i - NUM_COLUMNS) * NUM_COLUMNS + j]);
+            }
+        }
+
+        state.copy_from_slice(&result);
+    }
 
     #[test]
     fn test_sbox() {
@@ -412,6 +439,8 @@ mod tests {
             ],
         ];
 
+        let mut input2 = input;
+
         // Generated from https://github.com/vesselinux/anemoi-hash/
         let output = [
             [
@@ -519,7 +548,11 @@ mod tests {
         for i in input.iter_mut() {
             apply_mds(i);
         }
+        for i in input2.iter_mut() {
+            apply_naive_mds(i);
+        }
 
         assert_eq!(input, output);
+        assert_eq!(input2, output);
     }
 }

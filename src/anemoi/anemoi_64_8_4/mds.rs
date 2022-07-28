@@ -12,5 +12,6 @@ use super::NUM_COLUMNS;
 // Because of the small sizes of the coefficients of the matrix,
 // those are stored as u32 to enjoy faster multiplication with
 // `Fp` elements.
+#[allow(unused)]
 pub(crate) const MDS: [u32; NUM_COLUMNS * NUM_COLUMNS] =
     [1, 49, 49, 8, 8, 56, 49, 15, 7, 8, 1, 7, 7, 15, 8, 8];
